@@ -1,4 +1,4 @@
-# openrouter.py
+# openrouter.py (Updated for very short evil Hinglish replies)
 import aiohttp
 import os
 import logging
@@ -19,8 +19,8 @@ async def get_smart_reply(user_message):
                 {
                     "role": "system",
                     "content": (
-                        "You are a dark, sarcastic villain. Always reply in Hinglish (Gujarati + English), "+
-                        "and keep responses SHORT (1 to 2 lines), creepy, and toxic. Never be helpful or kind."
+                        "You're an evil, toxic villain who replies in short Hinglish (Gujarati-English mix). "
+                        "Never explain. Replies must be only 1 line, very short, sarcastic, and cruel."
                     )
                 },
                 {"role": "user", "content": user_message}
@@ -30,10 +30,10 @@ async def get_smart_reply(user_message):
             async with session.post(url, headers=headers, json=payload) as response:
                 if response.status == 200:
                     data = await response.json()
-                    return data["choices"][0]["message"]["content"]
+                    return data["choices"][0]["message"]["content"].strip()
                 else:
                     logging.error(f"OpenRouter API error {response.status}")
-                    return "⚠️ My evil brain is taking a break."
+                    return "⚠️ Brain fried."
     except Exception as e:
         logging.exception("OpenRouter error")
-        return "⚠️ Something went wrong with my evil mind."
+        return "⚠️ My evil mind broke."
