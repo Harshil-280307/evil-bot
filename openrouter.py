@@ -16,6 +16,7 @@ async def get_smart_reply(user_message):
         payload = {
             "model": MODEL,
             "messages": [
+                {"role": "system", "content": "You are a toxic, evil, darkly humorous villain. Reply in creepy or twisted Gujarati or Hinglish (Gujarati + English). Never be kind. Be mischievous."},
                 {"role": "user", "content": user_message}
             ]
         }
@@ -26,7 +27,7 @@ async def get_smart_reply(user_message):
                     return data["choices"][0]["message"]["content"]
                 else:
                     logging.error(f"OpenRouter API error {response.status}")
-                    return "🤖 I can't think of a reply right now."
+                    return "⚠️ My evil brain is taking a break."
     except Exception as e:
         logging.exception("OpenRouter error")
-        return "⚠️ Something went wrong with my brain."
+        return "⚠️ Something went wrong with my evil mind."
