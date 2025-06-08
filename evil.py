@@ -8,7 +8,6 @@ import logging
 import os
 import random
 from dotenv import load_dotenv
-from deep_translator import GoogleTranslator
 
 load_dotenv()
 
@@ -37,37 +36,25 @@ intents.members = True
 client = discord.Client(intents=intents)
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
-# Gujarati + English evil-style enhancer
-def evilify_reply(reply, original):
-    guj_phrases = [
-        "તને શરમ નથી આવતી? 😈",
-        "તારું દિમાગ ફ્રાઈ છે કે શું? 🤡",
-        "મને જોઈને ડરી ગયો ને? 👹",
-        "તું તો ભૂલનાર મજૂર છે. 💀",
-        "હવે તું મારી લિસ્ટમાં છે. 🧿",
-        "હસ્યા વગર ડરાવું છું હું. 😏",
-        "તમારું અસ્તિત્વ તુચ્છ છે. 🔥"
-    ]
-    eng_phrases = [
+# Evil state per channel
+evil_channels = set()
+
+# Evil-style response enhancer
+def evilify_reply(reply):
+    phrases = [
         "You're nothing but a pawn. ☠️",
         "Bow before me, mortal. 😈",
-        "Your words are weak. 💀",
+        "Your words are weak, unlike my wrath. 💀",
         "I feast on your failures. 👿",
         "Kneel, insect. 🔥",
         "I'm always watching... 🧿",
-        "Suffer in silence. 🕷️"
+        "Suffer in silence, or I will make you. 🕷️",
+        "તને ભય લાગ્યો છે? 😈",
+        "તમારી વાતોમાં કોઈ ભાર નથી. 💀",
+        "હું તને હંમેશા જુએ છું... 🧿",
+        "તું ફસાયો છે, હવે કેમ જુઓ. 🔥"
     ]
-
-    if any(char in original for char in "અઆઇઈઉઊએઐઓઔકખગઘચછજઝટઠડઢતથદધનપફબભમયરલવશષસહળંઁઽ"):
-        return f"{reply} — {random.choice(guj_phrases)}"
-    else:
-        return f"{reply} — {random.choice(eng_phrases)}"
-
-def translate_to_english(text):
-    try:
-        return GoogleTranslator(source='auto', target='en').translate(text)
-    except:
-        return text
+    return random.choice(phrases)
 
 @client.event
 async def on_ready():
@@ -79,8 +66,25 @@ async def on_message(message):
         if message.author.bot:
             return
 
-        content = message.content.strip()
+        content = message.content.strip().lower()
+        channel_id = message.channel.id
 
+        # Per-channel toggle commands
+        if content == "!evil on":
+            evil_channels.add(channel_id)
+            await message.channel.send("😈 Evil mode activated in this channel.")
+            return
+
+        if content == "!evil off":
+            evil_channels.discard(channel_id)
+            await message.channel.send("😇 Evil mode deactivated in this channel.")
+            return
+
+        # If evil mode OFF in this channel, do nothing
+        if channel_id not in evil_channels:
+            return
+
+        # Evil behavior: sometimes delete message
         if random.random() < 0.2:
             await asyncio.sleep(1)
             await message.delete()
@@ -88,21 +92,21 @@ async def on_message(message):
             return
 
         await message.channel.typing()
-
-        translated = translate_to_english(content)
-        raw_reply = await get_smart_reply(translated)
-        evil_reply = evilify_reply(raw_reply, content)
+        raw_reply = await get_smart_reply(message.content)
+        evil_reply = evilify_reply(raw_reply)
         await message.channel.send(evil_reply)
 
+        # Evil reaction emoji
         if random.random() < 0.3:
             await message.add_reaction("😈")
 
+        # Evil nickname change sometimes
         if random.random() < 0.1:
             try:
-                evil_names = ["ભયાનક", "વિનાશક", "જરૂરી ગુલામ", "હારી ગયેલો", "ફિલ્મી ખલનાયક"]
+                evil_names = ["Peasant", "Weakling", "Fool", "Minion", "Loser", "ભયાનક", "વિનાશક", "મૂર્ખ"]
                 new_nick = random.choice(evil_names)
                 await message.author.edit(nick=new_nick)
-                await message.channel.send(f"{message.author.mention}, હવે તારું નામ '{new_nick}' છે. મજા આવી ગઈ? 👹")
+                await message.channel.send(f"{message.author.mention}, you are now known as '{new_nick}'. Deal with it. 🧛")
             except:
                 pass
 
