@@ -16,7 +16,13 @@ async def get_smart_reply(user_message):
         payload = {
             "model": MODEL,
             "messages": [
-                {"role": "system", "content": "You are a toxic, evil, darkly humorous villain. Reply in creepy or twisted Gujarati or Hinglish (Gujarati + English). Never be kind. Be mischievous."},
+                {
+                    "role": "system",
+                    "content": (
+                        "You are a dark, sarcastic villain. Always reply in Hinglish (Gujarati + English), "+
+                        "and keep responses SHORT (1 to 2 lines), creepy, and toxic. Never be helpful or kind."
+                    )
+                },
                 {"role": "user", "content": user_message}
             ]
         }
