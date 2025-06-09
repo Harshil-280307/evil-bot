@@ -1,12 +1,12 @@
-# evil-bot.py
+# evil.py
 import discord
 import asyncio
+import random
 from flask import Flask
 from threading import Thread
 from openrouter import get_smart_reply
 import logging
 import os
-import random
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -36,29 +36,53 @@ intents.members = True
 client = discord.Client(intents=intents)
 TOKEN = os.getenv("DISCORD_BOT_TOKEN")
 
-# Evil state per channel
-evil_channels = set()
+evil_names = [
+    "Little Devil 😈", "Cursed Soul 👹", "Nightmare Fuel ☠️", "Dark Bean 🫘",
+    "Tiny Terror 🧨", "Ghoulie 💀", "Meow of Doom 🐱‍👤", "Sinister Smile 😏",
+    "Corrupted Angel 👿", "Sir Slaps-a-lot 🖐️", "Glitched Out 🤯", "Mister Mischief 🧛"
+]
 
-# Evil-style response enhancer
-def evilify_reply(reply):
-    phrases = [
-        "You're nothing but a pawn. ☠️",
-        "Bow before me, mortal. 😈",
-        "Your words are weak, unlike my wrath. 💀",
-        "I feast on your failures. 👿",
-        "Kneel, insect. 🔥",
-        "I'm always watching... 🧿",
-        "Suffer in silence, or I will make you. 🕷️",
-        "તને ભય લાગ્યો છે? 😈",
-        "તમારી વાતોમાં કોઈ ભાર નથી. 💀",
-        "હું તને હંમેશા જુએ છું... 🧿",
-        "તું ફસાયો છે, હવે કેમ જુઓ. 🔥"
-    ]
-    return random.choice(phrases)
+def guess_gender(username):
+    name = username.lower()
+    if any(word in name for word in ['queen', 'girl', 'lady', 'princess', '💖', '👑']):
+        return 'female'
+    elif any(word in name for word in ['king', 'boy', 'dude', 'bro', '🔥', '😎']):
+        return 'male'
+    else:
+        return 'neutral'
+
+def style_reply(reply, gender):
+    short_reply = reply.strip().split('.')[0][:80]
+    if gender == 'female':
+        return f"{short_reply} 💀"
+    elif gender == 'male':
+        return f"{short_reply} 🔥"
+    else:
+        return f"{short_reply} 😈"
+
+async def evil_nickname_changer():
+    await client.wait_until_ready()
+    while not client.is_closed():
+        try:
+            for guild in client.guilds:
+                members = [m for m in guild.members if not m.bot and m.nick != client.user.name]
+                if members:
+                    target = random.choice(members)
+                    new_name = random.choice(evil_names)
+                    try:
+                        await target.edit(nick=new_name)
+                        logging.info(f"Changed nickname of {target.display_name} to {new_name}")
+                    except:
+                        pass  # Avoid errors if missing permissions
+            await asyncio.sleep(random.randint(300, 600))  # every 5–10 mins
+        except Exception as e:
+            logging.exception("Nickname change error")
+            await asyncio.sleep(60)
 
 @client.event
 async def on_ready():
     logging.info(f"Evil is online as {client.user}")
+    client.loop.create_task(evil_nickname_changer())
 
 @client.event
 async def on_message(message):
@@ -67,48 +91,254 @@ async def on_message(message):
             return
 
         content = message.content.strip().lower()
-        channel_id = message.channel.id
+        username = message.author.display_name
 
-        # Per-channel toggle commands
-        if content == "!evil on":
-            evil_channels.add(channel_id)
-            await message.channel.send("😈 Evil mode activated in this channel.")
-            return
-
-        if content == "!evil off":
-            evil_channels.discard(channel_id)
-            await message.channel.send("😇 Evil mode deactivated in this channel.")
-            return
-
-        # If evil mode OFF in this channel, do nothing
-        if channel_id not in evil_channels:
-            return
-
-        # Evil behavior: sometimes delete message
-        if random.random() < 0.2:
-            await asyncio.sleep(1)
-            await message.delete()
-            await message.channel.send(f"{message.author.mention}, your message was too weak to exist. ☠️")
+        if "evil change" in content:
+            new_nick = random.choice(evil_names)
+            try:
+                await message.author.edit(nick=new_nick)
+                await message.channel.send(f"😈 Nickname cursed to **{new_nick}**!")
+            except:
+                await message.channel.send("🔒 I can't change your nickname! I need permission.")
             return
 
         await message.channel.typing()
-        raw_reply = await get_smart_reply(message.content)
-        evil_reply = evilify_reply(raw_reply)
-        await message.channel.send(evil_reply)
+        raw_reply = await get_smart_reply(content)
+        gender = guess_gender(username)
+        final_reply = style_reply(raw_reply, gender)
+        await message.channel.send(final_reply)
 
-        # Evil reaction emoji
-        if random.random() < 0.3:
-            await message.add_reaction("😈")
+    except Exception as e:
+        logging.exception("Error in on_message")
 
-        # Evil nickname change sometimes
-        if random.random() < 0.1:
+try:
+    client.run(TOKEN)
+except Exception as e:
+    logging.exception("Error running the bot")# evil.py
+import discord
+import asyncio
+import random
+from flask import Flask
+from threading import Thread
+from openrouter import get_smart_reply
+import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Logging setup
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s] %(message)s')
+
+# Flask server to keep alive
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Evil Bot is running!"
+
+def run_flask():
+    app.run(host='0.0.0.0', port=8080)
+
+Thread(target=run_flask).start()
+
+# Discord setup
+intents = discord.Intents.default()
+intents.messages = True
+intents.message_content = True
+intents.guilds = True
+intents.members = True
+
+client = discord.Client(intents=intents)
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+
+evil_names = [
+    "Little Devil 😈", "Cursed Soul 👹", "Nightmare Fuel ☠️", "Dark Bean 🫘",
+    "Tiny Terror 🧨", "Ghoulie 💀", "Meow of Doom 🐱‍👤", "Sinister Smile 😏",
+    "Corrupted Angel 👿", "Sir Slaps-a-lot 🖐️", "Glitched Out 🤯", "Mister Mischief 🧛"
+]
+
+def guess_gender(username):
+    name = username.lower()
+    if any(word in name for word in ['queen', 'girl', 'lady', 'princess', '💖', '👑']):
+        return 'female'
+    elif any(word in name for word in ['king', 'boy', 'dude', 'bro', '🔥', '😎']):
+        return 'male'
+    else:
+        return 'neutral'
+
+def style_reply(reply, gender):
+    short_reply = reply.strip().split('.')[0][:80]
+    if gender == 'female':
+        return f"{short_reply} 💀"
+    elif gender == 'male':
+        return f"{short_reply} 🔥"
+    else:
+        return f"{short_reply} 😈"
+
+async def evil_nickname_changer():
+    await client.wait_until_ready()
+    while not client.is_closed():
+        try:
+            for guild in client.guilds:
+                members = [m for m in guild.members if not m.bot and m.nick != client.user.name]
+                if members:
+                    target = random.choice(members)
+                    new_name = random.choice(evil_names)
+                    try:
+                        await target.edit(nick=new_name)
+                        logging.info(f"Changed nickname of {target.display_name} to {new_name}")
+                    except:
+                        pass  # Avoid errors if missing permissions
+            await asyncio.sleep(random.randint(300, 600))  # every 5–10 mins
+        except Exception as e:
+            logging.exception("Nickname change error")
+            await asyncio.sleep(60)
+
+@client.event
+async def on_ready():
+    logging.info(f"Evil is online as {client.user}")
+    client.loop.create_task(evil_nickname_changer())
+
+@client.event
+async def on_message(message):
+    try:
+        if message.author.bot:
+            return
+
+        content = message.content.strip().lower()
+        username = message.author.display_name
+
+        if "evil change" in content:
+            new_nick = random.choice(evil_names)
             try:
-                evil_names = ["Peasant", "Weakling", "Fool", "Minion", "Loser", "ભયાનક", "વિનાશક", "મૂર્ખ"]
-                new_nick = random.choice(evil_names)
                 await message.author.edit(nick=new_nick)
-                await message.channel.send(f"{message.author.mention}, you are now known as '{new_nick}'. Deal with it. 🧛")
+                await message.channel.send(f"😈 Nickname cursed to **{new_nick}**!")
             except:
-                pass
+                await message.channel.send("🔒 I can't change your nickname! I need permission.")
+            return
+
+        await message.channel.typing()
+        raw_reply = await get_smart_reply(content)
+        gender = guess_gender(username)
+        final_reply = style_reply(raw_reply, gender)
+        await message.channel.send(final_reply)
+
+    except Exception as e:
+        logging.exception("Error in on_message")
+
+try:
+    client.run(TOKEN)
+except Exception as e:
+    logging.exception("Error running the bot")# evil.py
+import discord
+import asyncio
+import random
+from flask import Flask
+from threading import Thread
+from openrouter import get_smart_reply
+import logging
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+# Logging setup
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s] %(message)s')
+
+# Flask server to keep alive
+app = Flask('')
+
+@app.route('/')
+def home():
+    return "Evil Bot is running!"
+
+def run_flask():
+    app.run(host='0.0.0.0', port=8080)
+
+Thread(target=run_flask).start()
+
+# Discord setup
+intents = discord.Intents.default()
+intents.messages = True
+intents.message_content = True
+intents.guilds = True
+intents.members = True
+
+client = discord.Client(intents=intents)
+TOKEN = os.getenv("DISCORD_BOT_TOKEN")
+
+evil_names = [
+    "Little Devil 😈", "Cursed Soul 👹", "Nightmare Fuel ☠️", "Dark Bean 🫘",
+    "Tiny Terror 🧨", "Ghoulie 💀", "Meow of Doom 🐱‍👤", "Sinister Smile 😏",
+    "Corrupted Angel 👿", "Sir Slaps-a-lot 🖐️", "Glitched Out 🤯", "Mister Mischief 🧛"
+]
+
+def guess_gender(username):
+    name = username.lower()
+    if any(word in name for word in ['queen', 'girl', 'lady', 'princess', '💖', '👑']):
+        return 'female'
+    elif any(word in name for word in ['king', 'boy', 'dude', 'bro', '🔥', '😎']):
+        return 'male'
+    else:
+        return 'neutral'
+
+def style_reply(reply, gender):
+    short_reply = reply.strip().split('.')[0][:80]
+    if gender == 'female':
+        return f"{short_reply} 💀"
+    elif gender == 'male':
+        return f"{short_reply} 🔥"
+    else:
+        return f"{short_reply} 😈"
+
+async def evil_nickname_changer():
+    await client.wait_until_ready()
+    while not client.is_closed():
+        try:
+            for guild in client.guilds:
+                members = [m for m in guild.members if not m.bot and m.nick != client.user.name]
+                if members:
+                    target = random.choice(members)
+                    new_name = random.choice(evil_names)
+                    try:
+                        await target.edit(nick=new_name)
+                        logging.info(f"Changed nickname of {target.display_name} to {new_name}")
+                    except:
+                        pass  # Avoid errors if missing permissions
+            await asyncio.sleep(random.randint(300, 600))  # every 5–10 mins
+        except Exception as e:
+            logging.exception("Nickname change error")
+            await asyncio.sleep(60)
+
+@client.event
+async def on_ready():
+    logging.info(f"Evil is online as {client.user}")
+    client.loop.create_task(evil_nickname_changer())
+
+@client.event
+async def on_message(message):
+    try:
+        if message.author.bot:
+            return
+
+        content = message.content.strip().lower()
+        username = message.author.display_name
+
+        if "evil change" in content:
+            new_nick = random.choice(evil_names)
+            try:
+                await message.author.edit(nick=new_nick)
+                await message.channel.send(f"😈 Nickname cursed to **{new_nick}**!")
+            except:
+                await message.channel.send("🔒 I can't change your nickname! I need permission.")
+            return
+
+        await message.channel.typing()
+        raw_reply = await get_smart_reply(content)
+        gender = guess_gender(username)
+        final_reply = style_reply(raw_reply, gender)
+        await message.channel.send(final_reply)
 
     except Exception as e:
         logging.exception("Error in on_message")
