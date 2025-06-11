@@ -40,10 +40,34 @@ vip_trolling_enabled = True
 
 # Evil nicknames
 evil_names = [
-    "Little Devil 😈", "Cursed Soul 👹", "Nightmare Fuel ☠️", "Dark Bean 🧨",
-    "Tiny Terror 🧸", "Ghoulie 💀", "Meow of Doom 🐱‍🔫", "Sinister Smile 😏",
-    "Corrupted Angel 👿", "Sir Slaps-a-lot 🗐️", "Glitched Out 🤯", "Mister Mischief 🧛"
+    "Little Devil 😈","Tnyu", "Cursed Soul 👹", "Nightmare Fuel ☠️", "Dark Bean 🫘",
+    "Tiny Terror 🧨", "Ghoulie 💀", "Meow of Doom 🐱‍👤", "Sinister Smile 😏",
+    "Corrupted Angel 👿", "Sir Slaps-a-lot 🖐️", "Glitched Out 🤯", "Mister Mischief 🧛",
+    "Bad Boi 🔥", "Sheesh Master 🥵", "Hell Baby 😇🔥", "Toxic AF ☣️", "Booty Whisperer 🍑🕵️‍♂️",
+    "Spicy Pickle 🥒🔥", "Drama Daddy 🎭👊", "Simp Slayer 💔🔪", "Whip It Good 🔗😈",
+    "Queen of Chaos 👑🧨", "Sugar Wreck 🍭💥", "Smooth Criminal 🎩🕶️", "Lurking Legend 👀⚔️",
+    "Midnight Snack 🌙😋", "Twerkzilla 🍑🦖", "Hard Drive 💾💥", "FlirtBot9000 🤖💋",
+    "Sir Glitch-a-lot 🧠⚡", "Chaos Magnet 🧲💢", "Savage Mode 🔥😤", "UwU Killer 🥺🔫",
+    "Slap Happy ✋🤣", "Meme Reaper 💀😂", "Fake Innocent 😇😏", "No Filter 😶‍🌫️📢",
+    "Mr. Smooth 🎩😌", "Sussy Legend 😳🏆", "Heartbreaker 2.0 💔💾", "Queen of Sass 👑😤",
+    "Snacc Attack 🍬💣", "Emoji Dealer 😂💊", "Sly Fox 🦊😉", "Tongue Twister 👅🌀",
+    "Zero Chill ❄️🔥", "Cringe King 😬👑", "Sinister Cutie 😈🥰", "Pixel Demon 💻👿",
+    "Cloud Chaser ☁️💨", "Fake Lover 💘🕵️", "Spill Queen 🫖👑", "Late Night Vibes 🌙✨",
+    "Bad Decision 🎲😏", "Mood Swinger 😵💫", "Laugh Assassin 😂🔪", "Caffeine Chaos ☕💥",
+    "Red Flag 🚩💘", "Plot Twister 🔄📖", "Unstable Genius 🧠💣", "Drama Dealer 🎭🧨",
+    "Silent Scream 😶🔊", "Heartbreak Hacker 💔💻", "Emo Energy 🖤🔋", "Mood Machine 😠➡️😜",
+    "Sweet Chaos 🍭🧨", "Sleepy Evil 😴😈", "Innocent Devil 😇😈", "Soft Villain 🧸👿",
+    "Dark Mode Activated 🌑💻", "Fictional Threat 📚⚠️", "Fluffy Menace 🐇💢",
+    "Cool Disaster 🧊💥", "Cheeky Phantom 👻😏", "Casual Rogue 🧥🎯", "Trouble Vibes 🔊🚫",
+    "Wholesome Bait 🎣🥺", "Toxic Tickle ☠️😂", "Laugh n’ Roast 🔥🤣", "Secret Sauce 🥫😜",
+    "Zoned Out 🌀💤", "Simp Scanner 🔍💘", "Spicy Energy 🌶️⚡", "Whiplash Mood 🎢😎",
+    "Overthink Tank 🧠💭", "Not a Bot 🤖😏", "Moody Cutie 😠😍", "Passive Threat 🤐💣",
+    "Chill Chaos ❄️🔊", "Offline Troll 📴👿", "Vibe Sniper 🎯🎶", "Lowkey Savage 🕶️😈",
+    "Witty Phantom 👻🧠", "Plot Bunny 🐰🧠", "Alt Account 🎭👀", "Sarcasm.exe 💻🙃",
+    "Smirking Soul 😏👻", "Blink Twice Bot 😵👀", "Shy But Psycho 🫣🔪", "Clapback Kid 👏😤",
+    "IYKYK 😌🤫", "Touch Grass 🌱😠", "Vibe Pirate 🏴‍☠️🎶", "Drama Looper 🔁🎭"
 ]
+
 
 def guess_gender(username):
     name = username.lower()
