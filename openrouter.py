@@ -1,4 +1,4 @@
-```python
+
 # openrouter.py
 # OpenRouter AI backend for Evil Discord Bot
 
@@ -278,4 +278,3 @@ async def get_smart_reply(user_message):
         )
 
         return "⚠️ My evil mind broke."
-```
