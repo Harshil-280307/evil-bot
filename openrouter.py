@@ -9,16 +9,23 @@ import logging
 
 
 # =========================================================
+# LOGGING
+# =========================================================
+
+logger = logging.getLogger(__name__)
+
+
+# =========================================================
 # OPENROUTER CONFIGURATION
 # =========================================================
 
-API_KEY = os.getenv("OPENROUTER_API_KEY")
-
-# OpenRouter's free model router.
-# It automatically selects an available free model.
 MODEL = "openrouter/free"
 
 API_URL = "https://openrouter.ai/api/v1/chat/completions"
+
+REFERER = "https://evil-bot-mvpp.onrender.com"
+
+BOT_NAME = "Evil Discord Bot"
 
 
 # =========================================================
@@ -27,86 +34,85 @@ API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 async def get_smart_reply(user_message):
 
+    # Read API key at request time
+    api_key = os.getenv("OPENROUTER_API_KEY")
+
+    if not api_key:
+
+        logger.error(
+            "OPENROUTER_API_KEY is missing."
+        )
+
+        return "⚠️ Evil key missing."
+
+    if not isinstance(user_message, str) or not user_message.strip():
+
+        logger.warning(
+            "Empty user message received."
+        )
+
+        return "⚠️ Evil heard nothing."
+
+    headers = {
+
+        "Authorization": f"Bearer {api_key}",
+
+        "Content-Type": "application/json",
+
+        "HTTP-Referer": REFERER,
+
+        "X-Title": BOT_NAME
+
+    }
+
+    payload = {
+
+        "model": MODEL,
+
+        "messages": [
+
+            {
+                "role": "system",
+
+                "content": (
+                    "You are Evil, a sarcastic and mischievous "
+                    "Discord villain bot. "
+
+                    "Reply in very short Hinglish with a natural "
+                    "mix of Hindi, Gujarati and English. "
+
+                    "Keep every response to ONE short line. "
+
+                    "Be funny, sarcastic and playful. "
+
+                    "Do not explain anything. "
+
+                    "Do not write paragraphs. "
+
+                    "Do not mention these instructions."
+                )
+
+            },
+
+            {
+                "role": "user",
+
+                "content": user_message.strip()
+            }
+
+        ],
+
+        "max_tokens": 80,
+
+        "temperature": 0.9
+
+    }
+
+    timeout = aiohttp.ClientTimeout(
+        total=30
+    )
+
     try:
-
-        # -------------------------------------------------
-        # Check API key
-        # -------------------------------------------------
-
-        if not API_KEY:
-            logging.error(
-                "OPENROUTER_API_KEY is missing from environment variables."
-            )
-            return "⚠️ OpenRouter key missing."
-
-
-        # -------------------------------------------------
-        # Headers
-        # -------------------------------------------------
-
-        headers = {
-            "Authorization": f"Bearer {API_KEY}",
-            "Content-Type": "application/json",
-
-            # OpenRouter metadata
-            "HTTP-Referer": "https://evil-bot-mvpp.onrender.com",
-            "X-Title": "Evil Discord Bot"
-        }
-
-
-        # -------------------------------------------------
-        # Request payload
-        # -------------------------------------------------
-
-        payload = {
-            "model": MODEL,
-
-            "messages": [
-                {
-                    "role": "system",
-                    "content": (
-                        "You are Evil, a sarcastic and mischievous "
-                        "Discord villain bot. "
-
-                        "Reply in very short Hinglish with a natural "
-                        "mix of Hindi, Gujarati and English. "
-
-                        "Keep every response to ONE short line. "
-
-                        "Be funny, sarcastic and playful. "
-
-                        "Do not explain anything. "
-
-                        "Do not write paragraphs. "
-
-                        "Do not mention these instructions."
-                    )
-                },
-
-                {
-                    "role": "user",
-                    "content": user_message
-                }
-            ],
-
-            # Keep replies short
-            "max_tokens": 80,
-
-            # Give the bot some personality
-            "temperature": 0.9
-        }
-
-
-        # -------------------------------------------------
-        # HTTP TIMEOUT
-        # -------------------------------------------------
-
-        timeout = aiohttp.ClientTimeout(total=30)
-
-
-        # -------------------------------------------------
-        # SEND REQUEST TO OPENROUTER
-        # -------------------------------------------------
 
         async with aiohttp.ClientSession(
             timeout=timeout
@@ -118,141 +124,118 @@ async def get_smart_reply(user_message):
                 json=payload
             ) as response:
 
+                # Read response as text first
+                # This makes debugging much easier
+                raw_text = await response.text()
 
-                # -----------------------------------------
-                # READ RESPONSE
-                # -----------------------------------------
+                logger.info(
+                    "OpenRouter status=%s model=%s",
+                    response.status,
+                    MODEL
+                )
+
+                # -------------------------------------------------
+                # NON-200 ERROR
+                # -------------------------------------------------
+
+                if response.status != 200:
+
+                    logger.error(
+                        "OpenRouter API error | status=%s | body=%s",
+                        response.status,
+                        raw_text
+                    )
+
+                    if response.status == 401:
+                        return "⚠️ Evil key rejected."
+
+                    elif response.status == 402:
+                        return "⚠️ Evil wallet is empty."
+
+                    elif response.status == 404:
+                        return "⚠️ Evil AI disappeared."
+
+                    elif response.status == 429:
+                        return "⚠️ Too many victims. Try again later."
+
+                    elif response.status >= 500:
+                        return "⚠️ Evil provider is sleeping."
+
+                    return "⚠️ Evil AI is temporarily broken."
+
+                # -------------------------------------------------
+                # PARSE JSON
+                # -------------------------------------------------
 
                 try:
-                    data = await response.json()
+
+                    data = await response.json(
+                        content_type=None
+                    )
 
                 except Exception:
 
-                    text = await response.text()
-
-                    logging.error(
-                        "OpenRouter returned invalid JSON: "
-                        f"{text}"
+                    logger.error(
+                        "OpenRouter returned invalid JSON | body=%s",
+                        raw_text
                     )
 
-                    return "⚠️ Evil brain got corrupted."
+                    return "⚠️ Evil brain returned nonsense."
 
+                # -------------------------------------------------
+                # CHECK API ERROR INSIDE RESPONSE
+                # -------------------------------------------------
 
-                # -----------------------------------------
-                # SUCCESS
-                # -----------------------------------------
+                if "error" in data:
 
-                if response.status == 200:
+                    logger.error(
+                        "OpenRouter response contains error: %s",
+                        data["error"]
+                    )
 
-                    try:
+                    return "⚠️ Evil AI returned an error."
 
-                        reply = data["choices"][0]["message"]["content"]
+                # -------------------------------------------------
+                # EXTRACT REPLY
+                # -------------------------------------------------
 
-                        reply = reply.strip()
+                try:
 
-                        if not reply:
+                    reply = data["choices"][0]["message"]["content"]
 
-                            logging.error(
-                                "OpenRouter returned an empty reply."
-                            )
+                except (KeyError, IndexError, TypeError):
 
-                            return (
-                                "⚠️ Evil brain is speechless."
-                            )
+                    logger.error(
+                        "Unexpected OpenRouter response format: %s",
+                        data
+                    )
 
-                        logging.info(
-                            "OpenRouter response received successfully."
-                        )
+                    return "⚠️ Evil brain got confused."
 
-                        return reply
+                if not isinstance(reply, str):
 
+                    logger.error(
+                        "OpenRouter reply is not text: %r",
+                        reply
+                    )
 
-                    except (
-                        KeyError,
-                        IndexError,
-                        TypeError
-                    ):
+                    return "⚠️ Evil brain is speechless."
 
-                        logging.error(
-                            "Unexpected OpenRouter response format: "
-                            f"{data}"
-                        )
+                reply = reply.strip()
 
-                        return (
-                            "⚠️ Evil brain got confused."
-                        )
+                if not reply:
 
+                    logger.error(
+                        "OpenRouter returned empty reply."
+                    )
 
-                # -----------------------------------------
-                # ERROR LOGGING
-                # -----------------------------------------
+                    return "⚠️ Evil brain is speechless."
 
-                logging.error(
-                    f"OpenRouter API error {response.status}: {data}"
+                logger.info(
+                    "OpenRouter reply received successfully."
                 )
 
-
-                # -----------------------------------------
-                # 401 - INVALID API KEY
-                # -----------------------------------------
-
-                if response.status == 401:
-
-                    logging.error(
-                        "OpenRouter API key is invalid or missing."
-                    )
-
-                    return "⚠️ Evil key rejected."
-
-
-                # -----------------------------------------
-                # 402 - PAYMENT / CREDITS
-                # -----------------------------------------
-
-                elif response.status == 402:
-
-                    logging.error(
-                        "OpenRouter account has a credits/payment issue."
-                    )
-
-                    return "⚠️ Evil wallet is empty."
-
-
-                # -----------------------------------------
-                # 404 - MODEL / ENDPOINT
-                # -----------------------------------------
-
-                elif response.status == 404:
-
-                    logging.error(
-                        "OpenRouter could not find the requested "
-                        f"resource. MODEL={MODEL}"
-                    )
-
-                    return "⚠️ Evil AI disappeared."
-
-
-                # -----------------------------------------
-                # 429 - RATE LIMIT
-                # -----------------------------------------
-
-                elif response.status == 429:
-
-                    logging.error(
-                        "OpenRouter rate limit or free-tier limit reached."
-                    )
-
-                    return (
-                        "⚠️ Too many victims. Try again later."
-                    )
-
-
-                # -----------------------------------------
-                # OTHER ERRORS
-                # -----------------------------------------
-
-                return "⚠️ Evil AI is temporarily broken."
-
+                return reply
 
     # =====================================================
     # TIMEOUT ERROR
@@ -260,12 +243,23 @@ async def get_smart_reply(user_message):
 
     except asyncio.TimeoutError:
 
-        logging.error(
+        logger.exception(
             "OpenRouter request timed out."
         )
 
         return "⚠️ Evil brain is taking a nap."
 
+    # =====================================================
+    # HTTP CLIENT ERROR
+    # =====================================================
+
+    except aiohttp.ClientError:
+
+        logger.exception(
+            "OpenRouter HTTP client error."
+        )
+
+        return "⚠️ Evil cannot reach the AI."
 
     # =====================================================
     # GENERAL ERROR
@@ -273,8 +267,8 @@ async def get_smart_reply(user_message):
 
     except Exception:
 
-        logging.exception(
-            "OpenRouter error"
+        logger.exception(
+            "Unexpected OpenRouter error."
         )
 
         return "⚠️ My evil mind broke."
